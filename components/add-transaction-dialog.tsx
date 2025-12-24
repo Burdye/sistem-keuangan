@@ -20,7 +20,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useTransactions } from "@/contexts/TransactionsContext"
-import { useNota } from "@/contexts/NotaContext"
 import { useEvents } from "@/contexts/EventsContext"
 import { transactionSchema, type TransactionFormData } from "@/lib/validation"
 import { generateNotaPDF } from "@/lib/nota-generator"
@@ -31,7 +30,6 @@ export function AddTransactionDialog() {
   const [open, setOpen] = useState(false)
   const [autoGenerateNota, setAutoGenerateNota] = useState(true)
   const { addTransaction } = useTransactions()
-  const { addNotaRecord } = useNota()
   const { events } = useEvents()
 
   // Filter only planned or active events
@@ -48,7 +46,7 @@ export function AddTransactionDialog() {
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       type: "KELUAR",
-      amount: 0,
+      amount: undefined as unknown as number, // Hack to show placeholder instead of 0
       category: "",
       description: "",
       treasurer: "",
@@ -80,27 +78,9 @@ export function AddTransactionDialog() {
 
       addTransaction(newTransaction)
 
-      // Generate QR code
-      const qrData = generateTransactionQRData({
-        id: transactionId,
-        type: newTransaction.type,
-        amount: newTransaction.amount,
-        date: newTransaction.date,
-        description: newTransaction.description,
-      })
-      const qrCodeDataURL = await generateQRCode(qrData)
-
-      // Always save to nota history (regardless of auto-generate checkbox)
-      addNotaRecord({
-        transactionId,
-        transactionType: newTransaction.type,
-        amount: newTransaction.amount,
-        date: newTransaction.date,
-        category: newTransaction.category,
-        description: newTransaction.description,
-        treasurer: newTransaction.treasurer,
-        qrCode: qrCodeDataURL,
-      })
+      // Generate QR code (for validation/testing only if needed)
+      // const qrData = generateTransactionQRData({ ... })
+      // const qrCodeDataURL = await generateQRCode(qrData)
 
       toast.success("Transaksi berhasil ditambahkan!", {
         description: `${data.type === "MASUK" ? "Pemasukan" : "Pengeluaran"} sebesar Rp ${data.amount.toLocaleString("id-ID")}`,

@@ -26,47 +26,43 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { DownloadIcon, FileTextIcon, QrCodeIcon, MoreVerticalIcon, SearchIcon, TrashIcon } from "lucide-react"
-import { useNota } from "@/contexts/NotaContext"
+import { useTransactions, type Transaction } from "@/contexts/TransactionsContext"
 import { formatCurrency } from "@/lib/currency"
 import { generateNotaPDF } from "@/lib/nota-generator"
+import { generateQRCode, generateTransactionQRData } from "@/lib/qrcode"
 import { toast } from "sonner"
+import { TransactionQR } from "@/components/transaction-qr"
 
 export default function NotaPage() {
-    const { notaRecords, deleteNotaRecord } = useNota()
+    const { transactions, deleteTransaction } = useTransactions()
     const [searchQuery, setSearchQuery] = useState("")
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-    const [notaToDelete, setNotaToDelete] = useState<string | null>(null)
+    const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null)
 
-    const filteredRecords = notaRecords.filter(
-        (nota) =>
-            nota.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            nota.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            nota.treasurer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            nota.transactionId.toLowerCase().includes(searchQuery.toLowerCase()),
+    const filteredRecords = transactions.filter(
+        (t) =>
+            t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.treasurer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.id.toLowerCase().includes(searchQuery.toLowerCase()),
     )
 
-    const handleDownloadNota = async (nota: (typeof notaRecords)[0]) => {
+    const handleDownloadNota = async (transaction: Transaction) => {
         try {
-            await generateNotaPDF({
-                id: nota.transactionId,
-                date: nota.date,
-                type: nota.transactionType,
-                amount: nota.amount,
-                category: nota.category,
-                description: nota.description,
-                treasurer: nota.treasurer,
-            })
+            await generateNotaPDF(transaction)
             toast.success("Nota berhasil didownload!")
         } catch (error) {
             toast.error("Gagal mendownload nota")
         }
     }
 
-    const handleDownloadQR = (nota: (typeof notaRecords)[0]) => {
+    const handleDownloadQR = async (transaction: Transaction) => {
         try {
+            const qrData = generateTransactionQRData(transaction)
+            const qrDataURL = await generateQRCode(qrData)
             const link = document.createElement("a")
-            link.href = nota.qrCode
-            link.download = `QR_${nota.transactionId}_${nota.date}.png`
+            link.href = qrDataURL
+            link.download = `QR_${transaction.id}_${transaction.date}.png`
             link.click()
             toast.success("QR Code berhasil didownload!")
         } catch (error) {
@@ -75,16 +71,16 @@ export default function NotaPage() {
     }
 
     const handleDeleteClick = (id: string) => {
-        setNotaToDelete(id)
+        setTransactionToDelete(id)
         setDeleteDialogOpen(true)
     }
 
     const handleDeleteConfirm = () => {
-        if (notaToDelete) {
-            deleteNotaRecord(notaToDelete)
-            toast.success("Nota berhasil dihapus")
+        if (transactionToDelete) {
+            deleteTransaction(transactionToDelete)
+            toast.success("Nota (Transaksi) berhasil dihapus")
             setDeleteDialogOpen(false)
-            setNotaToDelete(null)
+            setTransactionToDelete(null)
         }
     }
 
@@ -109,7 +105,7 @@ export default function NotaPage() {
                         <div>
                             <h2 className="text-2xl font-bold tracking-tight">Riwayat Nota</h2>
                             <p className="text-muted-foreground">
-                                Semua nota transaksi yang pernah dibuat ({notaRecords.length} total)
+                                Semua nota dari data transaksi tersimpan ({transactions.length} total)
                             </p>
                         </div>
                     </div>
@@ -131,22 +127,22 @@ export default function NotaPage() {
                             <CardContent className="flex flex-col items-center justify-center py-12">
                                 <FileTextIcon className="size-12 text-muted-foreground mb-4" />
                                 <p className="text-muted-foreground text-center">
-                                    {searchQuery ? "Tidak ada nota yang cocok dengan pencarian" : "Belum ada nota yang dibuat"}
+                                    {searchQuery ? "Tidak ada nota yang cocok dengan pencarian" : "Belum ada transaksi"}
                                 </p>
                                 <p className="text-sm text-muted-foreground text-center mt-1">
-                                    Nota akan otomatis dibuat saat Anda menambah transaksi
+                                    Nota otomatis tersedia untuk setiap transaksi
                                 </p>
                             </CardContent>
                         </Card>
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {filteredRecords.map((nota) => (
-                                <Card key={nota.id} className="hover:shadow-md transition-shadow">
+                            {filteredRecords.map((t) => (
+                                <Card key={t.id} className="hover:shadow-md transition-shadow">
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start justify-between">
                                             <div className="space-y-1 flex-1">
-                                                <CardTitle className="text-base line-clamp-1">{nota.description}</CardTitle>
-                                                <CardDescription className="text-xs">ID: {nota.transactionId}</CardDescription>
+                                                <CardTitle className="text-base line-clamp-1">{t.description}</CardTitle>
+                                                <CardDescription className="text-xs">ID: {t.id}</CardDescription>
                                             </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -155,17 +151,17 @@ export default function NotaPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleDownloadNota(nota)}>
+                                                    <DropdownMenuItem onClick={() => handleDownloadNota(t)}>
                                                         <FileTextIcon className="size-4 mr-2" />
                                                         Download PDF
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleDownloadQR(nota)}>
+                                                    <DropdownMenuItem onClick={() => handleDownloadQR(t)}>
                                                         <QrCodeIcon className="size-4 mr-2" />
                                                         Download QR
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem variant="destructive" onClick={() => handleDeleteClick(nota.id)}>
+                                                    <DropdownMenuItem variant="destructive" onClick={() => handleDeleteClick(t.id)}>
                                                         <TrashIcon className="size-4 mr-2" />
-                                                        Hapus
+                                                        Hapus Transaksi
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -174,26 +170,26 @@ export default function NotaPage() {
                                     <CardContent className="space-y-3">
                                         <div className="flex items-center gap-2">
                                             <Badge
-                                                variant={nota.transactionType === "MASUK" ? "default" : "secondary"}
+                                                variant={t.type === "MASUK" ? "default" : "secondary"}
                                                 className={
-                                                    nota.transactionType === "MASUK"
+                                                    t.type === "MASUK"
                                                         ? "bg-foreground text-background hover:bg-foreground/90"
                                                         : ""
                                                 }
                                             >
-                                                {nota.transactionType}
+                                                {t.type}
                                             </Badge>
-                                            <span className="text-xs text-muted-foreground">{nota.category}</span>
+                                            <span className="text-xs text-muted-foreground">{t.category}</span>
                                         </div>
 
                                         <div className="space-y-1">
                                             <p
-                                                className={`text-lg font-bold ${nota.transactionType === "MASUK" ? "text-foreground" : "text-muted-foreground"}`}
+                                                className={`text-lg font-bold ${t.type === "MASUK" ? "text-foreground" : "text-muted-foreground"}`}
                                             >
-                                                {nota.transactionType === "MASUK" ? "+" : "-"} {formatCurrency(nota.amount)}
+                                                {t.type === "MASUK" ? "+" : "-"} {formatCurrency(t.amount)}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {new Date(nota.date).toLocaleDateString("id-ID", {
+                                                {new Date(t.date).toLocaleDateString("id-ID", {
                                                     day: "numeric",
                                                     month: "long",
                                                     year: "numeric",
@@ -202,21 +198,21 @@ export default function NotaPage() {
                                         </div>
 
                                         <div className="flex items-center gap-2 pt-2 border-t">
-                                            <img src={nota.qrCode} alt="QR Code" className="size-12 border rounded" />
+                                            <TransactionQR transaction={t} className="size-12 border rounded" />
                                             <div className="text-xs text-muted-foreground flex-1">
-                                                <p>Bendahara: {nota.treasurer}</p>
-                                                <p className="text-[10px]">
-                                                    Dibuat: {new Date(nota.generatedAt).toLocaleString("id-ID")}
+                                                <p>Bendahara: {t.treasurer}</p>
+                                                <p className="text-[10px] text-muted-foreground/60">
+                                                    Realtime Sync
                                                 </p>
                                             </div>
                                         </div>
 
                                         <div className="flex gap-2 pt-2">
-                                            <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownloadNota(nota)}>
+                                            <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownloadNota(t)}>
                                                 <DownloadIcon className="size-3 mr-1" />
                                                 PDF
                                             </Button>
-                                            <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownloadQR(nota)}>
+                                            <Button size="sm" variant="outline" className="flex-1" onClick={() => handleDownloadQR(t)}>
                                                 <QrCodeIcon className="size-3 mr-1" />
                                                 QR
                                             </Button>
@@ -233,9 +229,9 @@ export default function NotaPage() {
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Nota?</AlertDialogTitle>
+                        <AlertDialogTitle>Hapus Nota & Transaksi?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Tindakan ini akan menghapus nota dari riwayat. Anda masih bisa generate ulang dari menu transaksi.
+                            Tindakan ini akan menghapus data transaksi ini secara permanen dari database. Nota tidak akan tersedia lagi.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

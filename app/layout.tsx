@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import { TransactionsProvider } from "@/contexts/TransactionsContext"
-import { NotaProvider } from "@/contexts/NotaContext"
+
 import { EventsProvider } from "@/contexts/EventsContext"
 import "./globals.css"
 
@@ -44,10 +44,8 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         <TransactionsProvider>
           <EventsProvider>
-            <NotaProvider>
-              {children}
-              <Toaster richColors position="top-center" />
-            </NotaProvider>
+            {children}
+            <Toaster richColors position="top-center" />
           </EventsProvider>
         </TransactionsProvider>
         <Analytics />

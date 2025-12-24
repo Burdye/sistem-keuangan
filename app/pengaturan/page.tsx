@@ -11,9 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useTransactions } from "@/contexts/TransactionsContext"
-import { useNota } from "@/contexts/NotaContext"
 import { useState } from "react"
-import { AlertCircle, Trash2Icon, DownloadIcon } from "lucide-react"
+import { Trash2Icon, DownloadIcon } from "lucide-react"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,16 +27,13 @@ import {
 
 export default function PengaturanPage() {
     const { transactions } = useTransactions()
-    const { notaRecords } = useNota()
     const [isDeleting, setIsDeleting] = useState(false)
 
-    // Fungsi reset data manual karena context mungkin tidak expose clearAll
-    // Tapi kita bisa gunakan localStorage.clear() dan reload page
     const handleResetData = () => {
         setIsDeleting(true)
         setTimeout(() => {
+            // Only clearing transactions since Nota is now derived
             localStorage.removeItem("keuangan-transactions")
-            localStorage.removeItem("keuangan-nota-records")
             toast.success("Semua data berhasil dihapus", {
                 description: "Halaman akan dimuat ulang dalam 2 detik..."
             })
@@ -50,7 +46,6 @@ export default function PengaturanPage() {
     const handleBackupData = () => {
         const data = {
             transactions,
-            notaRecords,
             timestamp: new Date().toISOString(),
             version: "1.0"
         }
@@ -189,7 +184,7 @@ export default function PengaturanPage() {
                                 <CardContent className="space-y-2">
                                     <div className="flex justify-between py-2 border-b">
                                         <span className="text-muted-foreground">Versi</span>
-                                        <span className="font-mono">v1.0.0</span>
+                                        <span className="font-mono">v1.2.0</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b">
                                         <span className="text-muted-foreground">Framework</span>
@@ -201,7 +196,7 @@ export default function PengaturanPage() {
                                     </div>
                                     <div className="flex justify-between py-2">
                                         <span className="text-muted-foreground">Storage</span>
-                                        <span>Local Browser Storage</span>
+                                        <span>Supabase Cloud Database</span>
                                     </div>
                                 </CardContent>
                             </Card>
