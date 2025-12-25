@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
+import { useCategories } from "@/contexts/CategoriesContext"
+import { ManageCategoriesDialog } from "@/components/manage-categories-dialog"
 import { useTransactions } from "@/contexts/TransactionsContext"
 import { useEvents } from "@/contexts/EventsContext"
 import { useTreasurers } from "@/hooks/use-treasurers"
@@ -30,9 +32,11 @@ import { VoiceInput } from "@/components/voice-input"
 export function AddTransactionDialog() {
   const [open, setOpen] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [formattedAmount, setFormattedAmount] = useState("")
   const { addTransaction } = useTransactions()
   const { events } = useEvents()
   const { treasurers, loading: loadingTreasurers } = useTreasurers()
+  const { categories } = useCategories()
 
   // Filter only planned or active events
   const activeEvents = events.filter(e => e.status !== "COMPLETED")
@@ -88,8 +92,28 @@ export function AddTransactionDialog() {
     setImagePreview(null)
   }
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "") // Hapus semua non-digit
+
+    if (value === "") {
+      setFormattedAmount("")
+      setValue("amount", 0)
+      return
+    }
+
+    const numValue = parseInt(value, 10)
+    setValue("amount", numValue)
+
+    // Format dengan thousand separator
+    const formatted = numValue.toLocaleString("id-ID")
+    setFormattedAmount(formatted)
+  }
+
   const handleVoiceData = (data: any) => {
-    if (data.amount) setValue("amount", data.amount)
+    if (data.amount) {
+      setValue("amount", data.amount)
+      setFormattedAmount(data.amount.toLocaleString("id-ID"))
+    }
     if (data.category && data.category !== "Lainnya") setValue("category", data.category)
     if (data.type) setValue("type", data.type)
     if (data.description) setValue("description", data.description)
@@ -126,6 +150,7 @@ export function AddTransactionDialog() {
 
       reset()
       setImagePreview(null)
+      setFormattedAmount("")
       setOpen(false)
     } catch (error) {
       toast.error("Gagal menambahkan transaksi", {
@@ -188,10 +213,11 @@ export function AddTransactionDialog() {
                 <Label htmlFor="amount">Nominal</Label>
                 <Input
                   id="amount"
-                  type="number"
-                  placeholder="150000"
+                  type="text"
+                  placeholder="150.000"
                   className="font-mono"
-                  {...register("amount", { valueAsNumber: true })}
+                  value={formattedAmount}
+                  onChange={handleAmountChange}
                 />
                 {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
               </div>
@@ -203,15 +229,21 @@ export function AddTransactionDialog() {
                     <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Iuran Anggota">Iuran Anggota</SelectItem>
-                    <SelectItem value="Donasi">Donasi</SelectItem>
-                    <SelectItem value="Operasional">Operasional</SelectItem>
-                    <SelectItem value="Konsumsi">Konsumsi</SelectItem>
-                    <SelectItem value="Perlengkapan">Perlengkapan</SelectItem>
-                    <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+                <ManageCategoriesDialog
+                  trigger={
+                    <button type="button" className="text-xs text-muted-foreground hover:text-primary text-left">
+                      + Kelola Kategori
+                    </button>
+                  }
+                />
               </div>
             </div>
 

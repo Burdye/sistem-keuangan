@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import { ManageCategoriesDialog } from "@/components/manage-categories-dialog"
 import { useTransactions } from "@/contexts/TransactionsContext"
 import { useState } from "react"
 import { Trash2Icon, DownloadIcon, PlusIcon, XIcon } from "lucide-react"
@@ -217,6 +218,16 @@ export default function PengaturanPage() {
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
+                                    </div>
+
+                                    <div className="flex items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                            <div className="font-medium">Kelola Kategori</div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Tambah atau hapus kategori transaksi.
+                                            </div>
+                                        </div>
+                                        <ManageCategoriesDialog />
                                     </div>
                                 </CardContent>
                             </Card>

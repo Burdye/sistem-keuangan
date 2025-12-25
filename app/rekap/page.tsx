@@ -247,6 +247,27 @@ export default function RekapPage() {
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
+
+                                                {/* Total Row */}
+                                                <TableRow className="bg-muted/50 font-semibold border-t-2">
+                                                    <TableCell colSpan={3} className="text-right">
+                                                        Total {category}:
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {categoryStats.income > 0 && (
+                                                            <span className="text-emerald-600">
+                                                                +{formatCurrency(categoryStats.income)}
+                                                            </span>
+                                                        )}
+                                                        {categoryStats.income > 0 && categoryStats.expense > 0 && " / "}
+                                                        {categoryStats.expense > 0 && (
+                                                            <span className="text-rose-600">
+                                                                -{formatCurrency(categoryStats.expense)}
+                                                            </span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell colSpan={2}></TableCell>
+                                                </TableRow>
                                             </TableBody>
                                         </Table>
                                     </CardContent>

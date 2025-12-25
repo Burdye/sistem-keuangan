@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { useCategories } from "@/contexts/CategoriesContext"
+import { ManageCategoriesDialog } from "@/components/manage-categories-dialog"
 import { useTransactions, type Transaction } from "@/contexts/TransactionsContext"
 import { useTreasurers } from "@/hooks/use-treasurers"
 import { transactionSchema, type TransactionFormData } from "@/lib/validation"
@@ -29,7 +31,9 @@ interface EditTransactionDialogProps {
 export function EditTransactionDialog({ transaction, open, onOpenChange }: EditTransactionDialogProps) {
     const { updateTransaction } = useTransactions()
     const { treasurers, loading: loadingTreasurers } = useTreasurers()
+    const { categories } = useCategories()
     const [imagePreview, setImagePreview] = useState<string | null>(transaction.imageUrl || null)
+    const [formattedAmount, setFormattedAmount] = useState(transaction.amount.toLocaleString("id-ID"))
 
     const {
         register,
@@ -72,6 +76,23 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
 
     const removeImage = () => {
         setImagePreview(null)
+    }
+
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/\D/g, "") // Hapus semua non-digit
+
+        if (value === "") {
+            setFormattedAmount("")
+            setValue("amount", 0)
+            return
+        }
+
+        const numValue = parseInt(value, 10)
+        setValue("amount", numValue)
+
+        // Format dengan thousand separator
+        const formatted = numValue.toLocaleString("id-ID")
+        setFormattedAmount(formatted)
     }
 
     const onSubmit = async (data: TransactionFormData) => {
@@ -136,10 +157,11 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
                             <Label htmlFor="edit-amount">Nominal</Label>
                             <Input
                                 id="edit-amount"
-                                type="number"
-                                placeholder="150000"
+                                type="text"
+                                placeholder="150.000"
                                 className="font-mono"
-                                {...register("amount", { valueAsNumber: true })}
+                                value={formattedAmount}
+                                onChange={handleAmountChange}
                             />
                             {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
                         </div>
@@ -150,15 +172,21 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
                                     <SelectValue placeholder="Pilih kategori" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Iuran Anggota">Iuran Anggota</SelectItem>
-                                    <SelectItem value="Donasi">Donasi</SelectItem>
-                                    <SelectItem value="Operasional">Operasional</SelectItem>
-                                    <SelectItem value="Konsumsi">Konsumsi</SelectItem>
-                                    <SelectItem value="Perlengkapan">Perlengkapan</SelectItem>
-                                    <SelectItem value="Lainnya">Lainnya</SelectItem>
+                                    {categories.map((cat) => (
+                                        <SelectItem key={cat} value={cat}>
+                                            {cat}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+                            <ManageCategoriesDialog
+                                trigger={
+                                    <button type="button" className="text-xs text-muted-foreground hover:text-primary text-left">
+                                        + Kelola Kategori
+                                    </button>
+                                }
+                            />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="edit-description">Keterangan</Label>
