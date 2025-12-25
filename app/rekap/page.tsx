@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useTransactions, type Transaction } from "@/contexts/TransactionsContext"
 import { formatCurrency } from "@/lib/currency"
-import { WalletIcon, FileTextIcon, EyeIcon } from "lucide-react"
+import { WalletIcon, FileTextIcon, EyeIcon, Loader2 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -16,7 +16,7 @@ import { useState, useEffect } from "react"
 import { useTreasurers } from "@/hooks/use-treasurers"
 
 export default function RekapPage() {
-    const { transactions } = useTransactions()
+    const { transactions, isLoading } = useTransactions()
     const { treasurers } = useTreasurers()
     const [notaDialogOpen, setNotaDialogOpen] = useState(false)
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
@@ -70,6 +70,17 @@ export default function RekapPage() {
     const handleViewNota = (transaction: Transaction) => {
         setSelectedTransaction(transaction)
         setNotaDialogOpen(true)
+    }
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background p-4 md:p-8 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                    <Loader2 className="size-8 animate-spin text-primary" />
+                    <p>Memuat data transaksi...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -188,6 +199,11 @@ export default function RekapPage() {
                     open={notaDialogOpen}
                     onOpenChange={setNotaDialogOpen}
                 />
+
+                <footer className="border-t py-6 text-center text-sm text-muted-foreground">
+                    <p>© {new Date().getFullYear()} Komunitas Seni Dhananjaya. All rights reserved.</p>
+                    <p className="text-xs mt-1">Sistem Keuangan & Laporan Digital Dhananjaya</p>
+                </footer>
             </div>
         </div>
     )
