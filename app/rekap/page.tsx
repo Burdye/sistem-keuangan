@@ -6,19 +6,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useTransactions, type Transaction } from "@/contexts/TransactionsContext"
 import { formatCurrency } from "@/lib/currency"
-import { WalletIcon, FileTextIcon, EyeIcon, Loader2 } from "lucide-react"
+import { WalletIcon, FileTextIcon, EyeIcon, Loader2, MessageCircleIcon, ImageIcon } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
 import { generateNotaPDF } from "@/lib/nota-generator"
 import { NotaDialog } from "@/components/nota-dialog"
+import { CommentDialog } from "@/components/comment-dialog"
+import { ImageViewerDialog } from "@/components/image-viewer-dialog"
 import { useState, useEffect } from "react"
 import { useTreasurers } from "@/hooks/use-treasurers"
 
 export default function RekapPage() {
-    const { transactions, isLoading } = useTransactions()
+    const { transactions, isLoading, addComment } = useTransactions()
     const { treasurers } = useTreasurers()
     const [notaDialogOpen, setNotaDialogOpen] = useState(false)
+    const [commentDialogOpen, setCommentDialogOpen] = useState(false)
+    const [imageDialogOpen, setImageDialogOpen] = useState(false)
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
     const [currentDate, setCurrentDate] = useState("")
 
@@ -70,6 +74,22 @@ export default function RekapPage() {
     const handleViewNota = (transaction: Transaction) => {
         setSelectedTransaction(transaction)
         setNotaDialogOpen(true)
+    }
+
+    const handleViewComments = (transaction: Transaction) => {
+        setSelectedTransaction(transaction)
+        setCommentDialogOpen(true)
+    }
+
+    const handleAddComment = async (name: string, text: string) => {
+        if (selectedTransaction) {
+            await addComment(selectedTransaction.id, { name, text })
+        }
+    }
+
+    const handleViewImage = (transaction: Transaction) => {
+        setSelectedTransaction(transaction)
+        setImageDialogOpen(true)
     }
 
     if (isLoading) {
@@ -136,7 +156,7 @@ export default function RekapPage() {
                                                 <TableHead>Keterangan</TableHead>
                                                 <TableHead className="text-right">Nominal</TableHead>
                                                 <TableHead>Bendahara</TableHead>
-                                                <TableHead className="w-[50px]"></TableHead>
+                                                <TableHead className="text-center w-[100px]">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -170,14 +190,41 @@ export default function RekapPage() {
                                                     </TableCell>
                                                     <TableCell className="text-muted-foreground text-sm">{transaction.treasurer}</TableCell>
                                                     <TableCell>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon-sm"
-                                                            onClick={() => handleViewNota(transaction)}
-                                                            title="Lihat Nota"
-                                                        >
-                                                            <FileTextIcon className="size-4" />
-                                                        </Button>
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon-sm"
+                                                                onClick={() => handleViewNota(transaction)}
+                                                                title="Lihat Nota"
+                                                            >
+                                                                <FileTextIcon className="size-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon-sm"
+                                                                onClick={() => handleViewComments(transaction)}
+                                                                title="Komentar"
+                                                                className="relative"
+                                                            >
+                                                                <MessageCircleIcon className="size-4" />
+                                                                {transaction.comments && transaction.comments.length > 0 && (
+                                                                    <span className="absolute -top-1 -right-1 size-4 text-[10px] bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold">
+                                                                        {transaction.comments.length}
+                                                                    </span>
+                                                                )}
+                                                            </Button>
+                                                            {transaction.imageUrl && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon-sm"
+                                                                    onClick={() => handleViewImage(transaction)}
+                                                                    title="Lihat Foto"
+                                                                    className="text-blue-600 hover:text-blue-700"
+                                                                >
+                                                                    <ImageIcon className="size-4" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -198,6 +245,19 @@ export default function RekapPage() {
                     transaction={selectedTransaction}
                     open={notaDialogOpen}
                     onOpenChange={setNotaDialogOpen}
+                />
+                <CommentDialog
+                    transaction={selectedTransaction}
+                    open={commentDialogOpen}
+                    onOpenChange={setCommentDialogOpen}
+                    onAddComment={handleAddComment}
+                />
+
+                <ImageViewerDialog
+                    imageUrl={selectedTransaction?.imageUrl || null}
+                    open={imageDialogOpen}
+                    onOpenChange={setImageDialogOpen}
+                    description={selectedTransaction?.description}
                 />
 
                 <footer className="border-t py-6 text-center text-sm text-muted-foreground">

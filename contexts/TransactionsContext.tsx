@@ -11,6 +11,13 @@ import {
 } from "@/lib/api"
 import { toast } from "sonner"
 
+export interface Comment {
+    id: string
+    name: string
+    text: string
+    timestamp: string // ISO string
+}
+
 export interface Transaction {
     id: string
     date: string
@@ -20,6 +27,8 @@ export interface Transaction {
     description: string
     treasurer: string
     eventId?: string // Optional link to an event
+    comments?: Comment[] // Array of comments
+    imageUrl?: string // Base64 encoded image or URL
 }
 
 interface TransactionStats {
@@ -35,6 +44,7 @@ interface TransactionsContextType {
     addTransaction: (transaction: Omit<Transaction, "id">) => void
     updateTransaction: (id: string, transaction: Partial<Transaction>) => void
     deleteTransaction: (id: string) => void
+    addComment: (transactionId: string, comment: Omit<Comment, "id" | "timestamp">) => void
     getStats: () => TransactionStats
     isLoading: boolean
 }
@@ -102,6 +112,37 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
         }
     }
 
+    const addComment = async (transactionId: string, comment: Omit<Comment, "id" | "timestamp">) => {
+        const newComment: Comment = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            ...comment,
+        }
+
+        // Optimistic update
+        setTransactions((prev) => {
+            const updated = prev.map((t) =>
+                t.id === transactionId
+                    ? { ...t, comments: [...(t.comments || []), newComment] }
+                    : t
+            )
+
+            // Sync to Supabase after state update
+            const updatedTransaction = updated.find((t) => t.id === transactionId)
+            if (updatedTransaction) {
+                updateTransactionInSupabase(transactionId, {
+                    comments: updatedTransaction.comments,
+                }).catch((error) => {
+                    console.error("Failed to sync comment to Supabase:", error)
+                    toast.error("Gagal menyimpan komentar ke server")
+                })
+            }
+
+            return updated
+        })
+    }
+
+
     const getStats = (): TransactionStats => {
         const now = new Date()
         const currentMonth = now.getMonth()
@@ -162,6 +203,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
                 addTransaction,
                 updateTransaction,
                 deleteTransaction,
+                addComment,
                 getStats,
                 isLoading
             }}

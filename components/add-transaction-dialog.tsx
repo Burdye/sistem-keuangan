@@ -29,6 +29,7 @@ import { VoiceInput } from "@/components/voice-input"
 
 export function AddTransactionDialog() {
   const [open, setOpen] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const { addTransaction } = useTransactions()
   const { events } = useEvents()
   const { treasurers, loading: loadingTreasurers } = useTreasurers()
@@ -58,6 +59,35 @@ export function AddTransactionDialog() {
   // Add eventId to validation schema might be needed in validation.ts, 
   // but for now we handle it as optional field that matches form data
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar')
+      return
+    }
+
+    // Validate file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      toast.error('Ukuran file maksimal 1MB')
+      return
+    }
+
+    // Convert to base64
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setImagePreview(base64String)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removeImage = () => {
+    setImagePreview(null)
+  }
+
   const handleVoiceData = (data: any) => {
     if (data.amount) setValue("amount", data.amount)
     if (data.category && data.category !== "Lainnya") setValue("category", data.category)
@@ -76,6 +106,7 @@ export function AddTransactionDialog() {
         treasurer: data.treasurer,
         eventId: data.eventId, // Pass eventId specifically
         date: data.date,
+        imageUrl: imagePreview || undefined,
       }
 
       addTransaction(newTransaction)
@@ -94,6 +125,7 @@ export function AddTransactionDialog() {
       })
 
       reset()
+      setImagePreview(null)
       setOpen(false)
     } catch (error) {
       toast.error("Gagal menambahkan transaksi", {
@@ -122,67 +154,77 @@ export function AddTransactionDialog() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid gap-4 py-4">
-            {/* ... inputs ... */}
-            <div className="grid gap-2">
-              <Label htmlFor="type">Tipe Transaksi</Label>
-              <Select defaultValue="KELUAR" onValueChange={(value) => setValue("type", value as "MASUK" | "KELUAR")}>
-                <SelectTrigger id="type">
-                  <SelectValue placeholder="Pilih tipe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MASUK">Pemasukan</SelectItem>
-                  <SelectItem value="KELUAR">Pengeluaran</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
+          <div className="grid gap-3 py-3">
+            {/* Tipe & Tanggal - 2 Kolom */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="type">Tipe</Label>
+                <Select defaultValue="KELUAR" onValueChange={(value) => setValue("type", value as "MASUK" | "KELUAR")}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Pilih tipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MASUK">Pemasukan</SelectItem>
+                    <SelectItem value="KELUAR">Pengeluaran</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="date">Tanggal</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  {...register("date")}
+                />
+                {errors.date && <p className="text-sm text-destructive">{errors.date.message}</p>}
+              </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="date">Tanggal</Label>
-              <Input
-                id="date"
-                type="date"
-                {...register("date")}
-              />
-              {errors.date && <p className="text-sm text-destructive">{errors.date.message}</p>}
+            {/* Nominal & Kategori - 2 Kolom */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-2">
+                <Label htmlFor="amount">Nominal</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="150000"
+                  className="font-mono"
+                  {...register("amount", { valueAsNumber: true })}
+                />
+                {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="category">Kategori</Label>
+                <Select onValueChange={(value) => setValue("category", value)}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Pilih kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Iuran Anggota">Iuran Anggota</SelectItem>
+                    <SelectItem value="Donasi">Donasi</SelectItem>
+                    <SelectItem value="Operasional">Operasional</SelectItem>
+                    <SelectItem value="Konsumsi">Konsumsi</SelectItem>
+                    <SelectItem value="Perlengkapan">Perlengkapan</SelectItem>
+                    <SelectItem value="Lainnya">Lainnya</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
+              </div>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="amount">Nominal</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="150000"
-                className="font-mono"
-                {...register("amount", { valueAsNumber: true })}
-              />
-              {errors.amount && <p className="text-sm text-destructive">{errors.amount.message}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">Kategori</Label>
-              <Select onValueChange={(value) => setValue("category", value)}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Pilih kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Iuran Anggota">Iuran Anggota</SelectItem>
-                  <SelectItem value="Donasi">Donasi</SelectItem>
-                  <SelectItem value="Operasional">Operasional</SelectItem>
-                  <SelectItem value="Konsumsi">Konsumsi</SelectItem>
-                  <SelectItem value="Perlengkapan">Perlengkapan</SelectItem>
-                  <SelectItem value="Lainnya">Lainnya</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.category && <p className="text-sm text-destructive">{errors.category.message}</p>}
-            </div>
+            {/* Keterangan */}
             <div className="grid gap-2">
               <Label htmlFor="description">Keterangan</Label>
               <Input id="description" placeholder="Contoh: Bayar listrik bulan Desember" {...register("description")} />
               {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
             </div>
+
+            {/* Bendahara */}
             <div className="grid gap-2">
-              <Label htmlFor="treasurer">Nama Bendahara</Label>
+              <Label htmlFor="treasurer">Bendahara</Label>
               <Select onValueChange={(value) => setValue("treasurer", value)}>
                 <SelectTrigger id="treasurer">
                   <SelectValue placeholder={loadingTreasurers ? "Memuat..." : "Pilih bendahara"} />
@@ -198,6 +240,40 @@ export function AddTransactionDialog() {
               {errors.treasurer && <p className="text-sm text-destructive">{errors.treasurer.message}</p>}
             </div>
 
+            {/* Foto Bukti */}
+            <div className="grid gap-2">
+              <Label htmlFor="image-upload">Foto Bukti (Opsional)</Label>
+              <div className="flex gap-2 items-start">
+                <Input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="cursor-pointer flex-1"
+                />
+                {imagePreview && (
+                  <div className="relative flex-shrink-0">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-16 h-16 object-cover rounded border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 size-6 rounded-full p-0"
+                      title="Hapus foto"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Acara */}
             <div className="grid gap-2">
               <Label htmlFor="event">Acara (Opsional)</Label>
               <Select onValueChange={(value) => setValue("eventId", value === "none" ? undefined : value)}>

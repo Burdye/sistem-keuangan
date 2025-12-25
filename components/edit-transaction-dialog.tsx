@@ -29,6 +29,7 @@ interface EditTransactionDialogProps {
 export function EditTransactionDialog({ transaction, open, onOpenChange }: EditTransactionDialogProps) {
     const { updateTransaction } = useTransactions()
     const { treasurers, loading: loadingTreasurers } = useTreasurers()
+    const [imagePreview, setImagePreview] = useState<string | null>(transaction.imageUrl || null)
 
     const {
         register,
@@ -47,6 +48,32 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
         },
     })
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('File harus berupa gambar')
+            return
+        }
+
+        if (file.size > 1024 * 1024) {
+            toast.error('Ukuran file maksimal 1MB')
+            return
+        }
+
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            const base64String = reader.result as string
+            setImagePreview(base64String)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const removeImage = () => {
+        setImagePreview(null)
+    }
+
     const onSubmit = async (data: TransactionFormData) => {
         try {
             updateTransaction(transaction.id, {
@@ -56,6 +83,7 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
                 description: data.description,
                 treasurer: data.treasurer,
                 date: data.date,
+                imageUrl: imagePreview || undefined,
             })
 
             toast.success("Transaksi berhasil diupdate!", {
@@ -159,6 +187,34 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
                                 </SelectContent>
                             </Select>
                             {errors.treasurer && <p className="text-sm text-destructive">{errors.treasurer.message}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-image-upload">Foto Bukti (Opsional)</Label>
+                            <Input
+                                id="edit-image-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileUpload}
+                                className="cursor-pointer"
+                            />
+                            {imagePreview && (
+                                <div className="relative mt-2 p-2 border rounded-lg">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Preview"
+                                        className="w-full h-48 object-cover rounded-md"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={removeImage}
+                                        className="absolute top-4 right-4"
+                                    >
+                                        Hapus Foto
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
