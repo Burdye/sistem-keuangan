@@ -59,7 +59,7 @@ export default function RekapPage() {
                         <Image src="/logo-dhananjaya-new.jpg" alt="Logo" fill className="object-contain p-0.5 bg-white" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuangan</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuangan Dhananjaya</h1>
                         <p className="text-muted-foreground">Laporan lengkap transaksi dan saldo.</p>
                     </div>
                 </div>
@@ -111,7 +111,9 @@ export default function RekapPage() {
                                                         <Badge
                                                             variant={transaction.type === "MASUK" ? "default" : "secondary"}
                                                             className={
-                                                                transaction.type === "MASUK" ? "bg-emerald-600 hover:bg-emerald-700 border-transparent text-white" : ""
+                                                                transaction.type === "MASUK"
+                                                                    ? "bg-emerald-600 hover:bg-emerald-700 border-transparent text-white"
+                                                                    : "bg-rose-600 hover:bg-rose-700 border-transparent text-white"
                                                             }
                                                         >
                                                             {transaction.type}
