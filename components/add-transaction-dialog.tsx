@@ -29,7 +29,6 @@ import { VoiceInput } from "@/components/voice-input"
 
 export function AddTransactionDialog() {
   const [open, setOpen] = useState(false)
-  const [autoGenerateNota, setAutoGenerateNota] = useState(true)
   const { addTransaction } = useTransactions()
   const { events } = useEvents()
   const { treasurers, loading: loadingTreasurers } = useTreasurers()
@@ -90,20 +89,9 @@ export function AddTransactionDialog() {
       })
 
       // Auto-generate nota PDF if checkbox is checked
-      if (autoGenerateNota) {
-        const transactionWithId = {
-          ...newTransaction,
-          id: transactionId,
-        }
-        await generateNotaPDF(transactionWithId)
-        toast.success("Nota otomatis didownload!", {
-          description: "Nota PDF telah dihasilkan & tersimpan di menu Nota",
-        })
-      } else {
-        toast.success("Nota tersimpan di menu Nota", {
-          description: "Anda bisa download nota kapan saja",
-        })
-      }
+      toast.success("Nota tersimpan di menu Nota", {
+        description: "Anda bisa download nota kapan saja",
+      })
 
       reset()
       setOpen(false)
@@ -227,15 +215,7 @@ export function AddTransactionDialog() {
               </Select>
             </div>
 
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox id="auto-nota" checked={autoGenerateNota} onCheckedChange={(checked) => setAutoGenerateNota(checked as boolean)} />
-              <label
-                htmlFor="auto-nota"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Otomatis download nota setelah simpan
-              </label>
-            </div>
+            {/* Removed auto-download checkbox */}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
