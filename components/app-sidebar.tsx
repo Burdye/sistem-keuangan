@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { LayoutDashboardIcon, FileTextIcon, SettingsIcon, TrendingUpIcon, WalletIcon, MegaphoneIcon } from "lucide-react"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 
@@ -50,6 +51,7 @@ const menuItems = [
 ]
 
 export function AppSidebar() {
+  const pathname = usePathname()
   const [userEmail, setUserEmail] = useState<string>("")
   const [userName, setUserName] = useState<string>("Admin")
 
@@ -84,7 +86,7 @@ export function AppSidebar() {
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild isActive={item.url === "/"}>
+                <SidebarMenuButton asChild isActive={item.url === "/" ? pathname === "/" : pathname.startsWith(item.url)}>
                   <a href={item.url}>
                     <item.icon className="size-4" />
                     <span>{item.title}</span>

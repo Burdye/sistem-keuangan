@@ -59,8 +59,8 @@ export default function RekapPage() {
                         <Image src="/logo-dhananjaya-new.jpg" alt="Logo" fill className="object-contain p-0.5 bg-white" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuangan Dhananjaya</h1>
-                        <p className="text-muted-foreground">Laporan lengkap transaksi dan saldo.</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuanga</h1>
+                        <p className="text-muted-foreground">Komunitas Seni Dhananjaya</p>
                     </div>
                 </div>
 
