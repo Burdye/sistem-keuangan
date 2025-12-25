@@ -24,10 +24,58 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { createClient } from "@/lib/supabase"
+import { useEffect } from "react"
 
 export default function PengaturanPage() {
     const { transactions } = useTransactions()
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+
+    // Profile State
+    const [communityName, setCommunityName] = useState("")
+    const [treasurerName, setTreasurerName] = useState("")
+    const [contactEmail, setContactEmail] = useState("")
+
+    useEffect(() => {
+        const supabase = createClient()
+        async function loadProfile() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                setCommunityName(user.user_metadata?.community_name || "Komunitas Maju Bersama")
+                setTreasurerName(user.user_metadata?.full_name || "Admin")
+                setContactEmail(user.email || "")
+            }
+        }
+        loadProfile()
+    }, [])
+
+    const handleSaveProfile = async () => {
+        setIsSaving(true)
+        try {
+            const supabase = createClient()
+            const { error } = await supabase.auth.updateUser({
+                data: {
+                    community_name: communityName,
+                    full_name: treasurerName,
+                }
+            })
+
+            if (error) throw error
+
+            toast.success("Profil berhasil disimpan", {
+                description: "Data bendahara telah diperbarui"
+            })
+
+            // Reload window to update sidebars etc (simple way)
+            setTimeout(() => window.location.reload(), 1000)
+
+        } catch (error) {
+            toast.error("Gagal menyimpan profil")
+        } finally {
+            setIsSaving(false)
+        }
+    }
 
     const handleResetData = () => {
         setIsDeleting(true)
@@ -158,19 +206,37 @@ export default function PengaturanPage() {
                                 <CardContent className="space-y-4">
                                     <div className="grid gap-2">
                                         <Label htmlFor="name">Nama Komunitas</Label>
-                                        <Input id="name" defaultValue="Komunitas Maju Bersama" />
+                                        <Input
+                                            id="name"
+                                            value={communityName}
+                                            onChange={(e) => setCommunityName(e.target.value)}
+                                            placeholder="Nama Komunitas Anda"
+                                        />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="treasurer">Nama Bendahara Default</Label>
-                                        <Input id="treasurer" defaultValue="Admin" />
+                                        <Input
+                                            id="treasurer"
+                                            value={treasurerName}
+                                            onChange={(e) => setTreasurerName(e.target.value)}
+                                            placeholder="Nama Anda"
+                                        />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="email">Email Kontak</Label>
-                                        <Input id="email" defaultValue="admin@komunitas.com" />
+                                        <Input
+                                            id="email"
+                                            value={contactEmail}
+                                            disabled
+                                            className="bg-muted"
+                                        />
+                                        <p className="text-[0.8rem] text-muted-foreground">Email tidak dapat diubah dari sini.</p>
                                     </div>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button onClick={() => toast.success("Profil berhasil disimpan")}>Simpan Perubahan</Button>
+                                    <Button onClick={handleSaveProfile} disabled={isSaving}>
+                                        {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
+                                    </Button>
                                 </CardFooter>
                             </Card>
                         </TabsContent>
