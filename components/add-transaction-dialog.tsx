@@ -50,6 +50,7 @@ export function AddTransactionDialog() {
       category: "",
       description: "",
       treasurer: "",
+      date: new Date().toISOString().split("T")[0],
     },
   })
 
@@ -73,7 +74,7 @@ export function AddTransactionDialog() {
         description: data.description,
         treasurer: data.treasurer,
         eventId: data.eventId, // Pass eventId specifically
-        date: new Date().toISOString().split("T")[0],
+        date: data.date,
       }
 
       addTransaction(newTransaction)
@@ -146,6 +147,17 @@ export function AddTransactionDialog() {
               </Select>
               {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="date">Tanggal</Label>
+              <Input
+                id="date"
+                type="date"
+                {...register("date")}
+              />
+              {errors.date && <p className="text-sm text-destructive">{errors.date.message}</p>}
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="amount">Nominal</Label>
               <Input

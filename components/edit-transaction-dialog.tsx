@@ -41,6 +41,7 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
             category: transaction.category,
             description: transaction.description,
             treasurer: transaction.treasurer,
+            date: transaction.date || new Date().toISOString().split("T")[0],
         },
     })
 
@@ -52,6 +53,7 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
                 category: data.category,
                 description: data.description,
                 treasurer: data.treasurer,
+                date: data.date,
             })
 
             toast.success("Transaksi berhasil diupdate!", {
@@ -90,6 +92,15 @@ export function EditTransactionDialog({ transaction, open, onOpenChange }: EditT
                                 </SelectContent>
                             </Select>
                             {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-date">Tanggal</Label>
+                            <Input
+                                id="edit-date"
+                                type="date"
+                                {...register("date")}
+                            />
+                            {errors.date && <p className="text-sm text-destructive">{errors.date.message}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="edit-amount">Nominal</Label>
