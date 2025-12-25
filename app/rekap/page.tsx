@@ -12,12 +12,23 @@ import Image from "next/image"
 import { toast } from "sonner"
 import { generateNotaPDF } from "@/lib/nota-generator"
 import { NotaDialog } from "@/components/nota-dialog"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useTreasurers } from "@/hooks/use-treasurers"
 
 export default function RekapPage() {
     const { transactions } = useTransactions()
+    const { treasurers } = useTreasurers()
     const [notaDialogOpen, setNotaDialogOpen] = useState(false)
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
+    const [currentDate, setCurrentDate] = useState("")
+
+    useEffect(() => {
+        setCurrentDate(new Date().toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }))
+    }, [])
 
     // Calulate All Time Totals
     const totalIncome = transactions
@@ -78,7 +89,14 @@ export default function RekapPage() {
                 {/* Total Saldo Card */}
                 <Card className="bg-primary text-primary-foreground">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-lg font-medium opacity-90">Total Saldo Saat Ini</CardTitle>
+                        <CardTitle className="text-lg font-medium opacity-90">
+                            Total Saldo Saat Ini
+                            {currentDate && (
+                                <span className="ml-2 text-sm font-normal opacity-75">
+                                    (Per {currentDate})
+                                </span>
+                            )}
+                        </CardTitle>
                         <WalletIcon className="size-5 opacity-70" />
                     </CardHeader>
                     <CardContent>
