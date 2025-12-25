@@ -6,8 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useTransactions, type Transaction } from "@/contexts/TransactionsContext"
 import { formatCurrency } from "@/lib/currency"
-import { ArrowLeftIcon, WalletIcon } from "lucide-react"
+import { WalletIcon } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function RekapPage() {
     const { transactions } = useTransactions()
@@ -54,11 +55,9 @@ export default function RekapPage() {
             <div className="mx-auto max-w-5xl space-y-8">
                 {/* Header & Navigation */}
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link href="/">
-                            <ArrowLeftIcon className="size-4" />
-                        </Link>
-                    </Button>
+                    <div className="relative size-12 overflow-hidden rounded-md border">
+                        <Image src="/logo-dhananjaya-new.jpg" alt="Logo" fill className="object-contain p-0.5 bg-white" />
+                    </div>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuangan</h1>
                         <p className="text-muted-foreground">Laporan lengkap transaksi dan saldo.</p>
