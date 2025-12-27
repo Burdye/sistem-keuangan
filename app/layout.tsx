@@ -18,19 +18,19 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/logo-dhananjaya.jpeg",
+        url: "/logo-dhananjaya.png",
         media: "(prefers-color-scheme: light)",
       },
       {
-        url: "/logo-dhananjaya.jpeg",
+        url: "/logo-dhananjaya.png",
         media: "(prefers-color-scheme: dark)",
       },
       {
-        url: "/logo-dhananjaya.jpeg",
+        url: "/logo-dhananjaya.png",
         type: "image/jpeg",
       },
     ],
-    apple: "/logo-dhananjaya.jpeg",
+    apple: "/logo-dhananjaya.png",
   },
 }
 

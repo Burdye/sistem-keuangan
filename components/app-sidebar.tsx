@@ -73,7 +73,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex items-center gap-3">
           <div className="relative flex size-8 items-center justify-center rounded-md overflow-hidden bg-white">
-            <Image src="/logo-dhananjaya-new.jpg" alt="Logo" fill className="object-contain p-1" />
+            <Image src="/logo-dhananjaya-new.png" alt="Logo" fill className="object-contain p-1" />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold leading-none">Dhananjaya</span>

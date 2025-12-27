@@ -34,7 +34,7 @@ export function LoginForm() {
         <div className="relative w-24 h-24 mb-2">
           {/* Ensure this image exists, or fallback to placeholder */}
           <div className="absolute inset-0 bg-indigo-50 rounded-full flex items-center justify-center">
-            <Image src="/logo-dhananjaya-new.jpg" alt="Logo" fill className="object-contain p-2" priority unoptimized />
+            <Image src="/logo-dhananjaya-new.png" alt="Logo" fill className="object-contain p-2" priority unoptimized />
           </div>
         </div>
         <div>
