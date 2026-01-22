@@ -105,11 +105,11 @@ export default function RekapPage() {
             <div className="mx-auto max-w-5xl space-y-8">
                 {/* Header & Navigation */}
                 <div className="flex items-center gap-4">
-                    <div className="relative size-12 overflow-hidden border">
+                    <div className="relative size-18 overflow-hidden ">
                         <Image src="/logo-dhananjaya.png" alt="Logo" fill className="object-contain p-0.5 bg-white" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">adsfjnasndf</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuangan</h1>
                         <p className="text-muted-foreground">Komunitas Seni Dhananjaya</p>
                     </div>
                 </div>
