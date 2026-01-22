@@ -105,8 +105,8 @@ export default function RekapPage() {
             <div className="mx-auto max-w-5xl space-y-8">
                 {/* Header & Navigation */}
                 <div className="flex items-center gap-4">
-                    <div className="relative size-12 overflow-hidden rounded-md border">
-                        <Image src="/logo-dhananjaya-new.jpg" alt="Logo" fill className="object-contain p-0.5 bg-white" />
+                    <div className="relative size-12 overflow-hidden border">
+                        <Image src="/logo-dhananjaya.png" alt="Logo" fill className="object-contain p-0.5 bg-white" />
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Rekapitulasi Keuangan</h1>
